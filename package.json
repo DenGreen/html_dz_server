@@ -1,0 +1,21 @@
+{
+  "name": "server_http",
+  "version": "1.0.0",
+  "main": "server.js",
+  "scripts": {
+    "start": "forever server.js",
+    "watch": "forever -w server.js"
+  },
+  "engines": {
+    "node": "11.x"
+  },
+  "author": "coursar",
+  "license": "MIT",
+  "dependencies": {
+    "forever": "^3.0.4",
+    "koa": "^2.13.1",
+    "koa-body": "^4.2.0"
+  },
+  "devDependencies": {},
+  "description": ""
+}
