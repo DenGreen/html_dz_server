@@ -2,6 +2,10 @@ const http = require("http");
 const Koa = require("koa");
 const app = new Koa();
 const koaBody = require("koa-body");
+const port = process.env.PORT || 7070;
+const server = http.createServer(app.callback()).listen(port, () => {
+  console.log(`Server ready and listening on ${port}`);
+});
 
 app.use(
   koaBody({
@@ -66,68 +70,84 @@ const ticketsAll = [
   },
 ];
 
-app.use(async (ctx) => {
-  if (ctx.request.method === 'GET') ({ method, id, name, description, created } = ctx.request.query);
-  else if (ctx.request.method === 'POST') ({ method, id, name, description, created } = ctx.request.body);
+class TicketController {
 
-  let date = new Date().toLocaleString();
+  allTickets() {
+    return tickets;
+  }
+
+  ticketByIdId(value) {
+    const {id} = value;
+    const ticketsAllElement = ticketsAll.find((e) => e.id == id);
+    return ticketsAllElement;
+  }
+
+  createTicket(value) {
+    let {name, description} = value;
+    tickets.push({
+      id: tickets.length + 1,
+      name: name,
+      status: "",
+      created: new Date().toLocaleString(),
+    });
+
+    ticketsAll.push({
+      id: ticketsAll.length + 1,
+      name: name,
+      description: description,
+      status: true,
+      created: new Date().toLocaleString(),
+    });
+
+    return tickets;
+  }
+
+  editTicket(value) {
+    const {id, name, description} = value;
+    let idTicket = tickets.findIndex((ticket) => ticket.id == id);
+
+    tickets[idTicket].name = name;
+    tickets[idTicket].created = new Date().toLocaleString();
+    ticketsAll[idTicket].description = description;
+
+    return tickets;
+  }
+
+  deleteTicket(value) {
+    const {id} = value;
+    let idTicketDelete = tickets.findIndex((ticket) => ticket.id == id);
+
+    tickets.splice(idTicketDelete, 1);
+    ticketsAll.splice(idTicketDelete, 1);
+
+    return tickets;
+  }
+}
+
+const ticketController = new TicketController();
+
+app.use(async (ctx) => {
+  if (ctx.request.method === 'GET') ({ method} = ctx.request.query);
+  else if (ctx.request.method === 'POST') ({ method } = ctx.request.body);
+  
   ctx.response.set({
     "Access-Control-Allow-Origin": "*",
   });
 
   switch (method) {
-    case "allTickets":
-      ctx.response.body = tickets;
-      ctx.response.status = 200;
+    case "allTickets": ctx.response.body = ticketController.allTickets();
       return;
-    case "ticketById&id":
-      let ticketsAllElement = ticketsAll.find((value) => value.id == id);
-      ctx.response.body = ticketsAllElement;
-      ctx.response.status = 200;
+    case "ticketById&id": ctx.response.body = ticketController.ticketByIdId(ctx.request.query);
       return;
-    case "createTicket":
-      tickets.push({
-        id: tickets.length + 1,
-        name: name,
-        status: "",
-        created: date,
-      });
-
-      ticketsAll.push({
-        id: ticketsAll.length + 1,
-        name: name,
-        description: description,
-        status: true,
-        created: date,
-      });
-
-      ctx.response.body = tickets;
-      ctx.response.status = 200;
+    case "createTicket": ctx.response.body = ticketController.createTicket(ctx.request.body);
       return;
-    case "editTicket":
-      let idTicket = tickets.findIndex((ticket) => ticket.id == id);
-      tickets[idTicket].name = name;
-      tickets[idTicket].created = date;
-      ticketsAll[idTicket].description = description;
-
-      ctx.response.body = tickets;
-      ctx.response.status = 200;
+    case "editTicket": ctx.response.body = ticketController.editTicket(ctx.request.body);
       return;
-    case "deleteTicket":
-      let idTicketDelete = tickets.findIndex((ticket) => ticket.id == id);
-      tickets.splice(idTicketDelete, 1);
-      ticketsAll.splice(idTicketDelete, 1);
-      ctx.response.body = tickets;
-      ctx.response.status = 200;
-      return;
+    case "deleteTicket": ctx.response.body = ticketController.deleteTicket(ctx.request.body);
+     return;
     default:
-      ctx.response.status = 404;
       ctx.response.body = `Unknown method '${method}' in request parameters`;
-      return;
+      ctx.response.status = 400;
+      break;
   }
-});
-
-const port = process.env.PORT || 7070;
-const server = http.createServer(app.callback()).listen(port, () => {
-  console.log(`Server ready and listening on ${port}`);
 });
