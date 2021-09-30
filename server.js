@@ -115,7 +115,8 @@ app.use(async (ctx) => {
       ctx.response.body = tickets;
       return;
     default:
-      ctx.response.status = tickets;
+      ctx.response.status = 404;
+      ctx.response.body = `Unknown method '${method}' in request parameters`;
       return;
   }
 });
