@@ -67,8 +67,9 @@ const ticketsAll = [
 ];
 
 app.use(async (ctx) => {
-  const { method, id, name, description, created } =
-    ctx.request.method === "POST" ? ctx.request.body : ctx.request.query;
+  if (ctx.request.method === 'GET') ({ method, id, name, description, created } = ctx.request.query);
+  else if (ctx.request.method === 'POST') ({ method, id, name, description, created } = ctx.request.body);
+
   let date = new Date().toLocaleString();
   ctx.response.set({
     "Access-Control-Allow-Origin": "*",
@@ -77,10 +78,12 @@ app.use(async (ctx) => {
   switch (method) {
     case "allTickets":
       ctx.response.body = tickets;
+      ctx.response.status = 200;
       return;
     case "ticketById&id":
       let ticketsAllElement = ticketsAll.find((value) => value.id == id);
       ctx.response.body = ticketsAllElement;
+      ctx.response.status = 200;
       return;
     case "createTicket":
       tickets.push({
@@ -99,6 +102,7 @@ app.use(async (ctx) => {
       });
 
       ctx.response.body = tickets;
+      ctx.response.status = 200;
       return;
     case "editTicket":
       let idTicket = tickets.findIndex((ticket) => ticket.id == id);
@@ -107,12 +111,14 @@ app.use(async (ctx) => {
       ticketsAll[idTicket].description = description;
 
       ctx.response.body = tickets;
+      ctx.response.status = 200;
       return;
     case "deleteTicket":
       let idTicketDelete = tickets.findIndex((ticket) => ticket.id == id);
       tickets.splice(idTicketDelete, 1);
       ticketsAll.splice(idTicketDelete, 1);
       ctx.response.body = tickets;
+      ctx.response.status = 200;
       return;
     default:
       ctx.response.status = 404;
@@ -122,4 +128,6 @@ app.use(async (ctx) => {
 });
 
 const port = process.env.PORT || 7070;
-const server = http.createServer(app.callback()).listen(port);
+const server = http.createServer(app.callback()).listen(port, () => {
+  console.log(`Server ready and listening on ${port}`);
+});
